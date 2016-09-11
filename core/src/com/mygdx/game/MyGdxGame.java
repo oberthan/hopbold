@@ -3,6 +3,7 @@ package com.mygdx.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -21,6 +22,9 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	Image bold;
 	Image kasse;
+
+    Sound bangLyd;
+
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
@@ -29,7 +33,10 @@ public class MyGdxGame extends ApplicationAdapter {
 		explosionTexture = new Texture("explosion.png");
 
 		bold = new Image(boldTexture);
+        bold.setSize(50f, 50f);
 		kasse = new Image(kasseTexture);
+        kasse.setSize(80f, 80f);
+        bangLyd = Gdx.audio.newSound(Gdx.files.internal("bang.wav"));
 	}
 
 	float bold_x = 0;
@@ -56,11 +63,11 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		if (hopperOp)
 		{
-			bold_y = bold_y + 18;
+			bold_y = bold_y + 12;
 		}
 		else
 		{
-			bold_y = bold_y - 1;
+			bold_y = bold_y - 12;
 		}
 
 		if (bold_y > 300)
@@ -88,17 +95,20 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// Flyt kasse
 		kasse.setPosition(kassex,0);
-		kassex = kassex -3;
+		kassex = kassex -6;
+
+        if (kassex + kasse.getWidth() < 0)kassex =640;
+
+        Rectangle boldOmkreds = new Rectangle(bold.getX()+10, bold.getY()+10, bold.getWidth()-20, bold.getHeight()-20);
+        Rectangle kasseOmkreds = new Rectangle(kasse.getX(), kasse.getY(), kasse.getWidth(), kasse.getHeight());
 
 		// Rammer bold kassen?
-		if (Intersector.overlaps(
-				new Rectangle(bold.getX(), bold.getY(), bold.getWidth(), bold.getHeight()),
-				new Rectangle(kasse.getX(), kasse.getY(), kasse.getWidth(), kasse.getHeight())
-				))
+		if (boldenErIkkeRamt && Intersector.overlaps(boldOmkreds, kasseOmkreds))
 		{
 			// Sæt boldtegning til eksplosion
 			bold.setDrawable(new TextureRegionDrawable(new TextureRegion(explosionTexture)));
 			boldenErIkkeRamt =false;
+            bangLyd.play();
 		}
 
 		// Sæt skærmfarve
