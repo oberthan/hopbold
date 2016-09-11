@@ -2,9 +2,9 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Intersector;
@@ -32,14 +32,45 @@ public class MyGdxGame extends ApplicationAdapter {
 		kasse = new Image(kasseTexture);
 	}
 
-	float boldx = 0;
-	float boldy = 0;
+	float bold_x = 0;
+	float bold_y = 0;
 	float boldrotation = 0;
 
 	float kassex = 640;
 
+	boolean hopperOp = false;
+
+	boolean boldenErIkkeRamt = true;
+
 	@Override
 	public void render () {
+
+		boolean skærmTrykket = Gdx.input.isTouched();
+		boolean mellemrumTrykket = Gdx.input.isKeyPressed(Input.Keys.SPACE);
+		boolean hopKnapTrykket = skærmTrykket || mellemrumTrykket;
+
+		if (hopKnapTrykket && bold_y == 0)
+		{
+			hopperOp = true;
+		}
+
+		if (hopperOp)
+		{
+			bold_y = bold_y + 18;
+		}
+		else
+		{
+			bold_y = bold_y - 1;
+		}
+
+		if (bold_y > 300)
+		{
+			hopperOp = false;
+		}
+		if (bold_y < 0)
+		{
+			bold_y = 0;
+		}
 		// Vinduet er 640 x 480
 		//  y 480
 		//  ---------------
@@ -48,16 +79,16 @@ public class MyGdxGame extends ApplicationAdapter {
 		// 0---------------  x 640
 
 		// Flyt bold
-		bold.setPosition(boldx, boldy);
+		bold.setPosition(bold_x, bold_y);
 		bold.setOrigin(Align.center);
 		bold.setRotation(boldrotation);
 
-		if (boldx < 10) boldx = boldx + 1;
-		boldrotation = boldrotation - 4;
+		if (bold_x < 10) bold_x = bold_x + 1;
+		if (boldenErIkkeRamt) boldrotation = boldrotation - 4;
 
 		// Flyt kasse
 		kasse.setPosition(kassex,0);
-		kassex = kassex -6;
+		kassex = kassex -3;
 
 		// Rammer bold kassen?
 		if (Intersector.overlaps(
@@ -65,7 +96,9 @@ public class MyGdxGame extends ApplicationAdapter {
 				new Rectangle(kasse.getX(), kasse.getY(), kasse.getWidth(), kasse.getHeight())
 				))
 		{
+			// Sæt boldtegning til eksplosion
 			bold.setDrawable(new TextureRegionDrawable(new TextureRegion(explosionTexture)));
+			boldenErIkkeRamt =false;
 		}
 
 		// Sæt skærmfarve
