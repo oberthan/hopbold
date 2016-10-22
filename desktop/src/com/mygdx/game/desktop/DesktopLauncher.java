@@ -8,8 +8,8 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		HopboldGame game = new HopboldGame();
-		config.width = game.getBoardWidth()/2;
-		config.height = game.getBoardHeight()/2;
+		config.width = game.getBoardWidth()*2;
+		config.height = game.getBoardHeight()*2;
 		new LwjglApplication(game, config);
 	}
 }

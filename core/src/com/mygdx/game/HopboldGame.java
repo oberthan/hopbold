@@ -22,9 +22,14 @@ public class HopboldGame extends Game {
 	public void create () {
 		resources = new HopboldResources();
 
-		Viewport viewport = new FitViewport(boardWidth, boardHeight);
+		Viewport viewport = new FitViewport(boardWidth/10, boardHeight/10);
 		stage = new Stage(viewport);
 		Gdx.input.setInputProcessor(stage);
+
+		// Scale factor from world units (meters) to graphics (scaled pixels)
+		// Needed to avoid rounding artifacts in box 2d.
+		float worldToGfxScale = 10f; // 10 => 1 meter is 10 pixels
+
 
 		setScreen(new MenuScreen(this, resources, stage));
 

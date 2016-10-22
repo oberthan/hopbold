@@ -29,6 +29,7 @@ public class MenuScreen implements Screen {
         this.stage = stage;
 
         playImage = new Image(resources.getPlayButtonTexture());
+        playImage.setScale(0.1f);
         playImage.setAlign(Align.center);
     }
 
