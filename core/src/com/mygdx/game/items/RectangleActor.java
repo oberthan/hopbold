@@ -20,6 +20,7 @@ public class RectangleActor extends Image {
         super(texture);
 
         this.body = gameWorld.addRectangle(position, width, height);
+        body.setUserData(this);
 
         // Order matters
         setAlign(Align.center);

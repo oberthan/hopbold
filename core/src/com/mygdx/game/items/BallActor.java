@@ -25,6 +25,7 @@ public class BallActor extends Image {
         super(texture);
 
         this.body = gameWorld.addBall(position, radius);
+        body.setUserData(this);
 
         // Rotate
         this.body.setAngularVelocity(-10);
@@ -41,5 +42,28 @@ public class BallActor extends Image {
         Vector2 position = body.getPosition();
         setPosition(position.x, position.y, Align.center);
         setRotation(MathUtils.radiansToDegrees * body.getAngle());
+    }
+
+    public boolean canJump() {
+        return touchCount > 0;
+    }
+
+    public void jump() {
+        body.applyLinearImpulse(new Vector2(0, 200), body.getWorldCenter(), true);
+    }
+    public void left() {
+        body.applyLinearImpulse(new Vector2(-100, 0), body.getWorldCenter(), true);
+    }
+
+    public void right() {
+        body.applyLinearImpulse(new Vector2(100, 0), body.getWorldCenter(), true);
+    }
+
+    int touchCount;
+    public void beginContact() {
+        touchCount++;
+    }
+    public void endContact() {
+        touchCount--;
     }
 }

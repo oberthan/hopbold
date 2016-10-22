@@ -1,13 +1,19 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.Contact;
+import com.badlogic.gdx.physics.box2d.ContactImpulse;
+import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
+import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.mygdx.game.items.BallActor;
 
 /**
  * Created by Søren on 22-10-2016.
@@ -31,7 +37,52 @@ public class GameWorld {
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
 
-        addFloor();
+        addWall(new Vector2(0, 0), new Vector2(worldWidth, 0));
+        addWall(new Vector2(0, 0), new Vector2(0, worldHeight));
+        addWall(new Vector2(worldWidth, 0), new Vector2(worldWidth, worldHeight));
+        addWall(new Vector2(0, worldHeight), new Vector2(worldWidth, worldHeight));
+
+
+        world.setContactListener(new ContactListener() {
+            @Override
+            public void beginContact(Contact contact) {
+                Object userDataA = contact.getFixtureA().getBody().getUserData();
+                Object userDataB = contact.getFixtureB().getBody().getUserData();
+                if (userDataA instanceof BallActor)
+                {
+                    ((BallActor) userDataA).beginContact();
+                }
+                if (userDataB instanceof BallActor)
+                {
+                    ((BallActor) userDataB).beginContact();
+                }
+            }
+
+            @Override
+            public void endContact(Contact contact) {
+                Object userDataA = contact.getFixtureA().getBody().getUserData();
+                Object userDataB = contact.getFixtureB().getBody().getUserData();
+                if (userDataA instanceof BallActor)
+                {
+                    ((BallActor) userDataA).endContact();
+                }
+                if (userDataB instanceof BallActor)
+                {
+                    ((BallActor) userDataB).endContact();
+                }
+
+            }
+
+            @Override
+            public void preSolve(Contact contact, Manifold oldManifold) {
+
+            }
+
+            @Override
+            public void postSolve(Contact contact, ContactImpulse impulse) {
+
+            }
+        });
 
     }
 
@@ -46,7 +97,7 @@ public class GameWorld {
         }
     }
 
-    private void addFloor()
+    private void addWall(Vector2 p1, Vector2 p2)
     {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.StaticBody;
@@ -55,7 +106,7 @@ public class GameWorld {
         bodyDef.linearDamping = 0.0f;
         Body body = world.createBody(bodyDef);
         EdgeShape shape = new EdgeShape();
-        shape.set(-worldWidth, 0, worldWidth*2, 0);
+        shape.set(p1, p2);
         body.createFixture(shape, 0);
         shape.dispose();
 
@@ -93,21 +144,19 @@ public class GameWorld {
         return body;
     }
 
-//    public Body addRectable()
-//    {
-//        BodyDef bodyDef = new BodyDef();
-//        bodyDef.type = BodyDef.BodyType.DynamicBody;
-//        bodyDef.position.set(position);
-//        bodyDef.angularDamping = 0.0f;
-//        bodyDef.linearDamping = 0.0f;
-//        Body body = world.createBody(bodyDef);
-//        CircleShape ballShape = new box2d.Sh
-//        ballShape.setRadius(radius);
-//        Fixture fixture = body.createFixture(ballShape, 0.5f /* density */);
-//        fixture.setFriction(2f);
-//        fixture.setRestitution(0.7f);
-//        ballShape.dispose();
-//        return body;
-//
-//    }
+    public float getWidth() {
+        return worldWidth;
+    }
+
+    public float getHeight() {
+        return worldHeight;
+    }
+
+    public Vector2 getInputPosition() {
+            float x = Gdx.input.getX();
+            float y = Gdx.graphics.getHeight()-Gdx.input.getY();
+            float worldX = worldWidth * x / Gdx.graphics.getWidth();
+            float worldY = worldHeight * y / Gdx.graphics.getHeight();
+            return new Vector2(worldX, worldY);
+    }
 }
