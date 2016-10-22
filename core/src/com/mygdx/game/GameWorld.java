@@ -23,6 +23,10 @@ public class GameWorld {
     private static final float TIME_STEP = 1 / 45f;
     private static final int VELOCITY_ITERATIONS = 6;
     private static final int POSITION_ITERATIONS = 2;
+    private final Body floor;
+    private final Body ceiling;
+//    private final Body leftWall;
+//    private final Body rightWall;
     private float accumulator = 0;
 
     private static final int GRAVITY = 30;
@@ -30,48 +34,52 @@ public class GameWorld {
     World world = new World(gravityVector, true);
 
 
-    private float worldWidth;
-    private float worldHeight;
+    private float viewX;
+    private float viewY;
+    private float viewWidth;
+    private float viewHeight;
 
-    public GameWorld(float worldWidth, float worldHeight) {
-        this.worldWidth = worldWidth;
-        this.worldHeight = worldHeight;
+    public GameWorld(float viewWidth, float viewHeight) {
+        this.viewWidth = viewWidth;
+        this.viewHeight = viewHeight;
 
-        addWall(new Vector2(0, 0), new Vector2(worldWidth, 0));
-        addWall(new Vector2(0, 0), new Vector2(0, worldHeight));
-        addWall(new Vector2(worldWidth, 0), new Vector2(worldWidth, worldHeight));
-        addWall(new Vector2(0, worldHeight), new Vector2(worldWidth, worldHeight));
+        floor = addWall(new Vector2(-10000, 0), new Vector2(viewWidth+10000, 0));
+        ceiling = addWall(new Vector2(0, viewHeight), new Vector2(viewWidth, viewHeight));
+//        leftWall = addWall(new Vector2(-100, 0), new Vector2(0, viewHeight));
+//        rightWall = addWall(new Vector2(viewWidth, 0), new Vector2(viewWidth, viewHeight));
 
 
         world.setContactListener(new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
-                Object userDataA = contact.getFixtureA().getBody().getUserData();
-                Object userDataB = contact.getFixtureB().getBody().getUserData();
+                beginBodyContact(contact.getFixtureA().getBody());
+                beginBodyContact(contact.getFixtureB().getBody());
+            }
+
+            // called twice with A/B swapped
+            private void beginBodyContact(Body bodyA) {
+                Object userDataA = bodyA.getUserData();
                 if (userDataA instanceof BallActor)
                 {
                     ((BallActor) userDataA).beginContact();
-                }
-                if (userDataB instanceof BallActor)
-                {
-                    ((BallActor) userDataB).beginContact();
                 }
             }
 
             @Override
             public void endContact(Contact contact) {
-                Object userDataA = contact.getFixtureA().getBody().getUserData();
-                Object userDataB = contact.getFixtureB().getBody().getUserData();
+                endBodyContact(contact.getFixtureA().getBody());
+                endBodyContact(contact.getFixtureB().getBody());
+            }
+
+            // called twice with A/B swapped
+            private void endBodyContact(Body bodyA) {
+                Object userDataA = bodyA.getUserData();
                 if (userDataA instanceof BallActor)
                 {
                     ((BallActor) userDataA).endContact();
                 }
-                if (userDataB instanceof BallActor)
-                {
-                    ((BallActor) userDataB).endContact();
-                }
-
             }
+
 
             @Override
             public void preSolve(Contact contact, Manifold oldManifold) {
@@ -83,7 +91,6 @@ public class GameWorld {
 
             }
         });
-
     }
 
     public void render(float deltaTime) {
@@ -97,7 +104,7 @@ public class GameWorld {
         }
     }
 
-    private void addWall(Vector2 p1, Vector2 p2)
+    private Body addWall(Vector2 p1, Vector2 p2)
     {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.StaticBody;
@@ -109,7 +116,7 @@ public class GameWorld {
         shape.set(p1, p2);
         body.createFixture(shape, 0);
         shape.dispose();
-
+        return body;
     }
 
     public Body addBall(Vector2 position, float radius) {
@@ -145,18 +152,38 @@ public class GameWorld {
     }
 
     public float getWidth() {
-        return worldWidth;
+        return viewWidth;
     }
 
     public float getHeight() {
-        return worldHeight;
+        return viewHeight;
+    }
+
+    public float getViewX() {
+        return viewX;
+    }
+
+    public void setViewX(float viewX) {
+        this.viewX = viewX;
+//        floor.setTransform(viewX, 0, 0);
+//        ceiling.setTransform(viewX, 0, 0);
+//        leftWall.setTransform(viewX, 0, 0);
+//        rightWall.setTransform(viewX, 0, 0);
+    }
+
+    public float getViewY() {
+        return viewY;
+    }
+
+    public void setViewY(float viewY) {
+        this.viewY = viewY;
     }
 
     public Vector2 getInputPosition() {
-            float x = Gdx.input.getX();
-            float y = Gdx.graphics.getHeight()-Gdx.input.getY();
-            float worldX = worldWidth * x / Gdx.graphics.getWidth();
-            float worldY = worldHeight * y / Gdx.graphics.getHeight();
-            return new Vector2(worldX, worldY);
+        float x = Gdx.input.getX();
+        float y = Gdx.graphics.getHeight()-Gdx.input.getY();
+        float worldX = viewX + viewWidth * x / Gdx.graphics.getWidth();
+        float worldY = viewY + viewHeight * y / Gdx.graphics.getHeight();
+        return new Vector2(worldX, worldY);
     }
 }

@@ -11,9 +11,10 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.HopboldResources;
 import com.mygdx.game.items.BallActor;
-import com.mygdx.game.items.RectangleActor;
+import com.mygdx.game.items.BoxActor;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Created by Søren on 22-10-2016.
@@ -22,7 +23,7 @@ import java.util.ArrayList;
 public class GameScreen implements Screen {
     private Stage stage = new Stage();
     private BallActor bold;
-    private ArrayList<RectangleActor> kasser = new ArrayList<RectangleActor>();
+    private ArrayList<BoxActor> boxActors = new ArrayList<BoxActor>();
     private Game game;
     private HopboldResources resources;
     private GameWorld gameWorld;
@@ -41,9 +42,7 @@ public class GameScreen implements Screen {
     public void show() {
         stage.clear();
 
-        // Initialiser spillere
-
-        bold = new BallActor(gameWorld, new Vector2(25, 25), 2f, resources.getBoldTexture());
+        bold = new BallActor(gameWorld, new Vector2(25, 25), 2f, resources);
         stage.addActor(bold);
 
         for (int i = 0; i < 20; i++) {
@@ -64,24 +63,25 @@ public class GameScreen implements Screen {
 
         updateActors(delta);
         gameWorld.render(delta);
-        bold.updateActor();
-        for (RectangleActor kasse:kasser) {
-            kasse.updateActor();
+        bold.updateActor(delta);
+        for (BoxActor box: boxActors) {
+            box.updateActor(delta);
         }
+
+        // Set camera to game world view port
+        stage.getCamera().position.x = gameWorld.getViewX()+gameWorld.getWidth()/2;
+        stage.getCamera().position.y = gameWorld.getViewY()+gameWorld.getHeight()/2;
 
         stage.act(delta);
         stage.draw();
+
+        // Scroll
+        gameWorld.setViewX(gameWorld.getViewX() + delta * 5);
     }
 
-    boolean hopperOp = false;
-
-    boolean boldenErIkkeRamt = true;
-
-
     private void updateActors(float delta) {
-        boolean mellemrumTrykket = Gdx.input.isKeyPressed(Input.Keys.SPACE);
-
-        if (bold.canJump() && Gdx.input.isKeyPressed(Input.Keys.SPACE))
+        // User control
+        if (bold.canJump() && Gdx.input.isKeyPressed(Input.Keys.UP))
             bold.jump();
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
             bold.left();
@@ -91,12 +91,24 @@ public class GameScreen implements Screen {
         {
             addNewBox(gameWorld.getInputPosition(), MathUtils.random(1, 6));
         }
+
+        // Remove obstacles out of sight
+        Iterator<BoxActor> boxIterator = boxActors.iterator();
+        while (boxIterator.hasNext()) {
+            BoxActor box = boxIterator.next();
+            if (box.getX() + box.getWidth() < gameWorld.getViewX()) // width/2 is enough
+            {
+                box.dispose();
+                boxIterator.remove();
+            }
+        }
     }
 
     private void addNewBox(Vector2 position, float size) {
-        RectangleActor kasse = new RectangleActor(gameWorld, position, size, size, resources.getKasseTexture());
+        BoxActor kasse = new BoxActor(gameWorld, position, size, size, resources);
+        kasse.updateActor(0);
         stage.addActor(kasse);
-        kasser.add(kasse);
+        boxActors.add(kasse);
     }
 
     @Override

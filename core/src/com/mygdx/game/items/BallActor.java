@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Align;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.HopboldResources;
 
 /**
  * Created by Søren on 22-10-2016.
@@ -19,10 +20,12 @@ import com.mygdx.game.GameWorld;
 
 public class BallActor extends Image {
     private Body body;
+    private HopboldResources resources;
 
 
-    public BallActor(GameWorld gameWorld, Vector2 position, float radius, Texture texture) {
-        super(texture);
+    public BallActor(GameWorld gameWorld, Vector2 position, float radius, HopboldResources resources) {
+        super(resources.getBoldTexture());
+        this.resources = resources;
 
         this.body = gameWorld.addBall(position, radius);
         body.setUserData(this);
@@ -38,7 +41,11 @@ public class BallActor extends Image {
 
     }
 
-    public void updateActor() {
+    public void updateActor(float delta) {
+        // Apply ambient forces
+        body.applyAngularImpulse(delta * -50, true);
+
+        // Update actor pose from body
         Vector2 position = body.getPosition();
         setPosition(position.x, position.y, Align.center);
         setRotation(MathUtils.radiansToDegrees * body.getAngle());
@@ -49,14 +56,14 @@ public class BallActor extends Image {
     }
 
     public void jump() {
-        body.applyLinearImpulse(new Vector2(0, 200), body.getWorldCenter(), true);
+        body.applyLinearImpulse(new Vector2(0, 140), body.getWorldCenter(), true);
     }
     public void left() {
-        body.applyLinearImpulse(new Vector2(-100, 0), body.getWorldCenter(), true);
+        body.applyLinearImpulse(new Vector2(-10, 0), body.getWorldCenter(), true);
     }
 
     public void right() {
-        body.applyLinearImpulse(new Vector2(100, 0), body.getWorldCenter(), true);
+        body.applyLinearImpulse(new Vector2(10, 0), body.getWorldCenter(), true);
     }
 
     int touchCount;
@@ -65,5 +72,10 @@ public class BallActor extends Image {
     }
     public void endContact() {
         touchCount--;
+    }
+
+    public void explode() {
+//        setDrawable(new TextureRegionDrawable(new TextureRegion(resources.getExplosionTexture())));
+
     }
 }
